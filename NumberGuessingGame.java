@@ -54,6 +54,7 @@ public class NumberGuessingGame {
         int attempts=0;
         boolean guessedCorrectly=false;
         int hintsLeft = 3;
+        HashSet<Integer> usedHints = new HashSet<>();
         while(attempts<maxAttempts) {
             long start=System.currentTimeMillis();
             System.out.println("\n🎯 Attempts Left: "+(maxAttempts-attempts));
@@ -67,7 +68,7 @@ public class NumberGuessingGame {
             int guess=sc.nextInt();
             if (guess == 0) {
                 if (hintsLeft > 0) {
-                    giveHint(secretNumber, maxNumber);
+                	giveHint(secretNumber, maxNumber, usedHints);
                     hintsLeft--;
                     System.out.println("Hints Remaining : " + hintsLeft);
                 }
@@ -76,7 +77,7 @@ public class NumberGuessingGame {
                 }
                 continue;
             }
-            if(guess != 0){
+            if(guess!=0){
                 guessHistory.add(guess);
             }
             if (guess<1 || guess>maxNumber) {
@@ -166,46 +167,51 @@ public class NumberGuessingGame {
         System.out.println();
     }
     
-    public void giveHint(int secretNumber, int maxNumber) {
-    	HashSet<Integer> usedHints = new HashSet<>();
-    	int hintType;
-    	do {
-    	    hintType = random.nextInt(6);
-    	} while (usedHints.contains(hintType));
-    	usedHints.add(hintType);
+    public void giveHint(int secretNumber, int maxNumber, HashSet<Integer> usedHints) {
+        if (usedHints.size() == 6) {
+            System.out.println("💡 All available hints have already been used.");
+            return;
+        }
+        int hintType;
+        do {
+            hintType = random.nextInt(6);
+        } while (usedHints.contains(hintType));
+        usedHints.add(hintType);
         switch (hintType) {
             case 0:
-                if (secretNumber % 2 == 0)
-                    System.out.println("💡 Hint: The number is EVEN.");
-                else
-                    System.out.println("💡 Hint: The number is ODD.");
+                System.out.println(secretNumber % 2 == 0 ?
+                        "💡 Hint: The number is EVEN."
+                        :
+                        "💡 Hint: The number is ODD.");
                 break;
             case 1:
-                System.out.println("💡 Hint: The number is " +
-                        (secretNumber > maxNumber / 2 ? "GREATER" : "LESS") +
-                        " than " + (maxNumber / 2));
+                System.out.println("💡 Hint: The number is "
+                        + (secretNumber > maxNumber / 2 ? "GREATER" : "LESS")
+                        + " than " + (maxNumber / 2));
                 break;
             case 2:
                 System.out.println("💡 Hint: The last digit is " + (secretNumber % 10));
                 break;
             case 3:
-                if (secretNumber % 5 == 0)
-                    System.out.println("💡 Hint: The number is divisible by 5.");
-                else
-                    System.out.println("💡 Hint: The number is NOT divisible by 5.");
+                System.out.println(secretNumber % 5 == 0 ?
+                        "💡 Hint: The number is divisible by 5."
+                        :
+                        "💡 Hint: The number is NOT divisible by 5.");
                 break;
+
             case 4:
-                int range = maxNumber / 10;
-                int low = (secretNumber / range) * range + 1;
-                int high = low + range - 1;
-                if (high > maxNumber)
-                    high = maxNumber;
-                System.out.println("💡 Hint: The number lies between " +
-                        low + " and " + high + ".");
+                int range = Math.max(10, maxNumber / 10);
+
+                int low = ((secretNumber - 1) / range) * range + 1;
+                int high = Math.min(low + range - 1, maxNumber);
+
+                System.out.println("💡 Hint: The number lies between "
+                        + low + " and " + high + ".");
                 break;
             case 5:
                 int sum = 0;
                 int temp = secretNumber;
+
                 while (temp > 0) {
                     sum += temp % 10;
                     temp /= 10;
